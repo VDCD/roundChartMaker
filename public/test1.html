@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+	<head>
+	    <meta charset="UTF-8" />
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	    <title>Graphe Camembert</title>
+	    <link rel="stylesheet" type="text/css" href="css/style.css">
+	    <link rel=stylesheet type="text/css" href="css/grille.css"/>
+	    <script type="text/javascript" src="libs/raphael-min.js"></script>
+	    <script type="text/javascript" src="libs/g.raphael-min.js"></script>
+	    <script type="text/javascript" src="libs/g.pie-min.js"></script>
+	    <script type="text/javascript" src="libs/jquery-1.11.2.min.js"></script>
+	    <script type="text/javascript" src="libs/FileSaver.min.js"></script>
+			<script type="text/javascript" src="libs/canvas-toBlob.js"></script>
+	</head>
+
+	<body>
+		<div class="row">
+			<div class="col-12 textCenter header midnight track"><h1>Easy Chart Maker</h1></div>
+			<div class="col-12 textCenter separation turquoise track"><h1>Build your own chart !</h1></div>
+			<div class="form col-12 col-m-6 concrete">
+				<h2 class="track">Input your data : </h2>
+				<h3> Press ENTER to add more data </h3>
+				<form id="formular" NAME="form1" class="formAdd" >
+					<p class="emptyP" style="clear:both"></p>
+					<input class=" col-6 col-m-5 col-center valueInput" TYPE="number" NAME="value_1" VALUE=""></input>
+				</form>
+				<p class="emptyP" style="clear:both"></p>
+				<div class="col-12 textCenter">
+					<h1 class="download download-1" onclick="generate()">Download the Image !</h1>
+				</div>
+			</div>
+
+			<div id="paper1" class="graph col-12 col-m-6" ondragstart="return false"  onselectstart="return false">
+			</div>
+
+			<div class="col-12 textCenter footer midnight track">
+		        <script type="text/javascript" src="libs/rgbcolor.js"></script>
+				<script type="text/javascript" src="libs/StackBlur.js"></script>
+				<script type="text/javascript" src="libs/canvg.js"></script>
+				<h1>Footer</h1>
+			</div>
+		</div>
+
+		<canvas id="canvas" width="1000px" height="600px"></canvas>
+
+		<script type="text/javascript">
+			var compteur = 1;
+			var papier = $("#paper1");
+			var w = papier.width();
+			var h = papier.height();
+			paper = Raphael(papier.attr("id"),w,h);
+			paper.setViewBox(0, 0, w, h, true);
+			//console.log(w,h);
+			var paper;
+			var arrayResults = [];
+			var graphe;
+			var colorsPrepared = [
+			"#1abc9c","#3498db","#9b59b6","#34495e","#2ecc71","#f1c40f","#e67e22","#e74c3c","#95a5a6","#ecf0f1"
+			];
+
+			var colorsUsed=[];
+			for(i=0;i<=100;i++){
+				colorsUsed.push(1);
+			}
+
+			//console.log(colorsUsed);
+			function create(){
+				compteur++;
+				if(compteur<=10){
+					$('.formAdd').append(
+						'<p class="emptyP" style="clear:both"></p>'+
+					'<input class=" col-6 col-m-5 col-center valueInput" TYPE="number" NAME="value_'+compteur+'" VALUE=""></input>'
+					);
+				}
+			}
+
+			function generate(){
+			  //load a svg snippet in the canvas with id = 'drawingArea'
+			  //console.log(document.getElementById("paper1").innerHTML);
+			  var svgContent = document.getElementById("paper1").innerHTML;
+			  var canvas = document.getElementById("canvas");
+			  canvg(canvas, svgContent);
+			  canvas.toBlob(function(blob) {
+				   saveAs(blob, "Votre Graphe.png");
+			   });
+			}
+
+			function randomColor(){
+				var r = Math.random()*255;
+				var g = Math.random()*255;
+				var b = Math.random()*255;
+				return ('rgb('+r+','+g+','+b+')');
+			}
+
+			function setColor(element){
+				console.log(element.type);
+					element.attr({
+					fill : randomColor()
+				});
+			}
+
+			function draw(){
+				paper.clear();
+				while(arrayResults.length>0){
+					arrayResults.pop();
+				}
+
+				//console.log("array results "+arrayResults);
+
+				var valeur = $("#formular").serializeArray();
+				//console.log(valeur);
+
+				for(i=0;i<valeur.length;i++){
+					//console.log(valeur[i].value);
+					//console.log(valeur[i].value.length);
+					if (valeur[i].value.length === 0){
+
+					}else{
+						arrayResults[i]=0+parseInt(valeur[i].value);
+						if(colorsUsed[i]==1 && compteur<=11){
+							//colorsUsed[i]=randomColor();
+							colorsUsed[i]=colorsPrepared[i];
+						}
+					}
+					//console.log(arrayResults);
+				}
+
+				graphe = paper.piechart(w/2,h/2,w/4,arrayResults,{
+					stroke : "#000",
+					colors:colorsUsed,
+					matchColors:true
+				});
+
+				var bot = paper.bottom, result = paper.set();
+
+		        while (bot) {
+		             result.push(bot);
+		             bot = bot.next;
+		        }
+
+		        result.attr({"stroke-width":3});
+		        //result.node.onclick = setColor(result);
+
+				for(i in result){
+					if(result[i].type==="path" || result[i].type==="circle"){
+						result[i].click = function (evt) {
+							console.log("huehue");
+
+		            	};
+					}
+				}
+			}
+
+			$(".form").change(function(){
+			draw();
+			});
+
+			function resize() {
+			    w = papier.width();
+			    h = papier.height();
+
+			    paper.setSize(w,h);
+			    paper.setViewBox(0, 0, w, h, true);
+			    draw();
+		    }
+
+			$(document).keydown(function(e){
+			    if (e.keyCode == 13) {
+			       create();
+			       document.getElementById("formular").lastChild.focus();
+
+			    }
+			});
+
+			$(document).keydown(function(e){
+			    if (e.keyCode == 9) {
+			       create();
+			    }
+			});
+
+			$(window).resize(resize);
+		</script>
+
+	</body>
+</html>

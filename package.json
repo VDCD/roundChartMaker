@@ -1,0 +1,12 @@
+{
+  "name": "easychartmaker",
+  "version": "1.0.0",
+  "description": "Old simple project to try raphael pie. You can download generated PNG pie",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Victor Dupuy",
+  "license": "MIT"
+}
